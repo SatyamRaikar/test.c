@@ -1,0 +1,116 @@
+
+// 'C' source line config statements
+// CONFIG
+#pragma config FOSC = EXTRC     // Oscillator Selection bits (RC oscillator)
+#pragma config WDTE = OFF       // Watchdog Timer Enable bit (WDT enabled)
+#pragma config PWRTE = OFF      // Power-up Timer Enable bit (PWRT disabled)
+#pragma config BOREN = OFF       // Brown-out Reset Enable bit (BOR enabled)
+#pragma config LVP = OFF         // Low-Voltage (Single-Supply) In-Circuit Serial Programming Enable bit (RB3/PGM pin has PGM function; low-voltage programming enabled)
+#pragma config CPD = OFF        // Data EEPROM Memory Code Protection bit (Data EEPROM code protection off)
+#pragma config WRT = OFF        // Flash Program Memory Write Enable bits (Write protection off; all program memory may be written to by EECON control)
+#pragma config CP = OFF         // Flash Program Memory Code Protection bit (Code protection off)
+
+// #pragma config statements should precede project file includes.
+// Use project enums instead of #define for ON and OFF.
+
+#include <xc.h>
+#define _XTAL_FREQ 6000000
+void init();
+void Lcd_Command(unsigned char);
+void Lcd_Data(unsigned char);
+void Lcd_show(unsigned int);
+unsigned char j,k[10],equal,min;
+unsigned int sub,num1,num2,m,n;
+void main()
+{
+    init();
+    num1=526;
+    num2=678;
+   
+    
+    equal='=';
+    min='-';
+    Lcd_Command(0x80);
+    Lcd_show(num1);
+    Lcd_Command(0x83);
+    Lcd_Data(min);
+    Lcd_Command(0x84);
+    Lcd_show(num2);
+    Lcd_Command(0x87);
+    Lcd_Data(equal);
+    if(num2>num1)
+    {
+        sub=num2-num1;
+        Lcd_Command(0x88);
+        Lcd_Data(min);
+        Lcd_Command(0x89);
+        Lcd_show(sub);
+    }
+    else
+    {
+        sub=num1-num2;
+        Lcd_Command(0x88);
+        Lcd_show(sub);
+        
+    }
+      
+    while(1);
+    
+    
+    
+}
+
+void init()
+{
+    TRISC=0X00;          
+    TRISD=0X00;
+    Lcd_Command(0x38);    //Setting 8-bit mode lcd having two lines and Character shape between 5x7 matrix 
+    __delay_ms(10);  
+    Lcd_Command(0x38);     //Setting 8-bit mode lcd having two lines and Character shape between 5x7 matrix 
+    __delay_ms(10);
+    Lcd_Command(0x38);    
+    __delay_ms(10);
+    Lcd_Command(0x38);
+    __delay_ms(10);
+    Lcd_Command(0x06);     //shift cursor to the right
+    __delay_ms(10);
+    Lcd_Command(0x0C);     //DISPLAY ON CURSOR OFF
+    __delay_ms(10);
+    Lcd_Command(0x01);
+    __delay_ms(10);     
+}
+void Lcd_Data(unsigned char i)
+{
+  PORTC|=0X08;   //RC3=1 RS=1 data mode
+  PORTD=i;
+  PORTC|=0X01;   //EN=1
+  PORTC&=~0x01;  //EN=0
+  __delay_ms(100);
+}
+void Lcd_Command(unsigned char i)
+{
+    PORTC&=~0X08; //RC3=0 RS=0 command mode
+    PORTD=i;
+    PORTC|=0X01;   //EN=1
+    PORTC&=~0x01;  //EN=0
+    __delay_ms(100);
+}
+void Lcd_show(unsigned int i)
+{
+    unsigned char s,j=1;
+    m=i;
+    while(m!=0)
+    {   s=m-((m/10)*10);
+        m=m/10;
+        k[j]=s;
+        j++;    
+    }
+    k[j]='\0';
+    j=j-1;
+    while(j!=0)
+    {
+        n=0x30+k[j];
+        Lcd_Data(n);
+        j--;
+    }    
+}
